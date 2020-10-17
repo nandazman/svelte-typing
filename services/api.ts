@@ -4,14 +4,14 @@ const axiosAPI = axios.create({
   baseURL : "https://type.fit/api/quotes"
 })
 
-const apiRequest = (method, url) => {
+const apiRequest = (method: any, url: string) => {
   return axiosAPI({
     method,
     url
   })
 }
 
-const get = (url, request) => apiRequest("get", url);
+const get = (url?: string) => apiRequest("get", url);
 
 export default {
   get

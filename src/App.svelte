@@ -1,80 +1,104 @@
-<script lang="ts">
+<script type="module" lang="ts">
+	interface Quotes {
+		text?: string;
+		author?: number;
+	}
 	import API from "../services/api";
-	import _ from "../node_modules/lodash";
 	import { onMount } from 'svelte';
 	let inputUser: string;
-	let examples = [];
+	let wordLists: any[] = [];
 	let containerPosition = {
 		offsetTop: 0,
 		currentPositionTop: 0
 	}
 	const currentWord = {
-		index: 0
+		index: 0,
+		offsetTop: 0
 	}
 
 	onMount(async () => {
-		examples = await getWordLists();
+		wordLists = await getWordLists();
 	})
 	const getWordLists = async () => {
 		const response = await API.get()
-		const sentences = response.data.slice(0, 50)
+		const getSartingPoint = Math.floor(Math.random() * 1592);
+		const sentences = response.data.slice(getSartingPoint, getSartingPoint + 50)
 		const displayWords = [];
-		_.forEach(sentences, (data) => {
-			const words = data.text.split(' ');
-			_.forEach(words, (word) => {
+
+		for (let i = 0; i < sentences.length; i++) {
+			const words = sentences[i].text.split(' ');
+			for (let j = 0; j < words.length; j++) {
+				if (displayWords.length === 250) return displayWords;
 				displayWords.push({
-					text: word
+					text: words[j]
 				})
-			});
-		})
-		return displayWords;
+			}
+		}
 	};
 	
 	const userPressKey = ({ keyCode }) => {
-		checkUserInputWithWord(keyCode === 32)
-		if (keyCode === 32) {
-			initFirstWord();
-			currentWord.index++;
-		}
-	}
-	
-	const initFirstWord = () => {
-		inputUser = '';
-	}
-
-	const restart = async () => {
-		initFirstWord()
-		currentWord.index = 0;
-		examples = await getWordLists();
-	}
-
-	const checkUserInputWithWord = (lastInput = false) => {
 		const typedWord = inputUser || '';
-		const word = examples[currentWord.index].text;
-		examples[currentWord.index].incorrect = false;
+		const word = wordLists[currentWord.index].text;
+		wordLists[currentWord.index].incorrect = false;
 
-		if (lastInput) {
-			if(word !== typedWord.trim()) {
-				examples[currentWord.index].incorrect = true;
-				return;
-			}
+		if (keyCode === 32) {
+			procedNextWord(typedWord, word)
+		} else {
+			checkCurrentActiveWord(typedWord, word)
 		}
+	}
 
+	const checkCurrentActiveWord = (typedWord:string, word:string) => {
 		for (let i = 0; i < typedWord.trim().length; i++) {
 			if(word[i] !== typedWord[i]) {
-				examples[currentWord.index].incorrect = true;
+				wordLists[currentWord.index].incorrect = true;
 				break;
 			}
 		}
 	}
+	const procedNextWord = (typedWord:string, word:string) => {
+		const splittedInput = typedWord.split(' ');
+		updateLatestWordStatus(word, splittedInput[0]);
+		initFirstWord(splittedInput[1]);
+		moveDisplayWordPosition()
+	}
+	
+	const initFirstWord = (initWord?:string) => {
+		inputUser = initWord || '';
+	}
 
-	const getClassWordBasedOnInput = (i, example) => {
+	const moveDisplayWordPosition = () => {
+		currentWord.index++;
+		// inside HTMLElementTagNameMap interface there is HTMLSpanElement
+		// then we can use offsetTop property
+		const activeElement = document.querySelectorAll<HTMLSpanElement>('.word')[currentWord.index];
+		if (activeElement && activeElement.offsetTop > currentWord.offsetTop) {
+			containerPosition.offsetTop += 52;
+			currentWord.offsetTop = activeElement.offsetTop;
+		}
+	}
+
+	const updateLatestWordStatus = (activeWord: string, lastWord: string) => {
+		if(activeWord.trim() !== lastWord.trim()) {
+				wordLists[currentWord.index].incorrect = true;
+			}
+	}
+
+	const restart = async () => {
+		wordLists = await getWordLists();
+		initFirstWord()
+		currentWord.index = 0;
+		containerPosition.offsetTop = 0;
+		currentWord.offsetTop = 0;
+	}
+
+	const getClassWordBasedOnInput = (i: number, word: any) => {
 		if (currentWord.index === i) {
-			if (example.incorrect) return 'active incorrect';
+			if (word.incorrect) return 'active incorrect';
 			return 'active'
 		}
 		if (i < currentWord.index) {
-			if (example.incorrect) return 'incorrect';
+			if (word.incorrect) return 'incorrect';
 			return 'correct';
 		}
 		return ''
@@ -84,9 +108,9 @@
 
 <main>
 	<div class="container">
-		<div class="word-container" style="top:{containerPosition.offsetTop}">
-			{#each examples as example, i}
-				<span class="word {getClassWordBasedOnInput(i, example)}">{example.text}</span>
+		<div class="word-container" style="bottom:{containerPosition.offsetTop}px">
+			{#each wordLists as word, i}
+				<span class="word {getClassWordBasedOnInput(i, word)}">{word.text}</span>
 			{/each}
 		</div>
 	</div>

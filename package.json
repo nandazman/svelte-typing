@@ -1,6 +1,7 @@
 {
   "name": "svelte-app",
   "version": "1.0.0",
+  "type": "module",
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w",
@@ -25,7 +26,6 @@
   },
   "dependencies": {
     "axios": "^0.20.0",
-    "lodash": "^4.17.20",
     "sirv-cli": "^1.0.0"
   }
 }
