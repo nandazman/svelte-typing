@@ -5,6 +5,13 @@
 	}
 	import API from "../services/api";
 	import { onMount } from 'svelte';
+	let timer = {
+		start: false,
+		interval: null,
+		minutes: 1,
+		seconds: 0,
+		init: true
+	}
 	let inputUser: string;
 	let wordLists: any[] = [];
 	let containerPosition = {
@@ -35,8 +42,41 @@
 			}
 		}
 	};
+
+	const checkGameProgress = () => {
+		return timer.start;
+	}
+
+	const startTimer = () => {
+		timer.interval = setInterval(() => {
+			if (timer.seconds !== 0) {
+				timer.seconds--;
+			} else if (timer.minutes !== 0) {
+				timer.minutes--;
+				if (timer.minutes === 0) {
+					timer.seconds = 59;
+				}
+			} else {
+				timer.start = false;
+				wordLists = [];
+				inputUser = '';
+			}
+		}, 1000)
+	}
+
+	const startGame = () => {
+		if (!timer.start){ 
+			timer.start = true;
+			timer.init = false;
+			startTimer();
+		};
+	}
 	
 	const userPressKey = ({ keyCode }) => {
+		const inGame = checkGameProgress();
+		if (!inGame) {
+			startGame();
+		}
 		const typedWord = inputUser || '';
 		const word = wordLists[currentWord.index].text;
 		wordLists[currentWord.index].incorrect = false;
@@ -90,6 +130,13 @@
 		currentWord.index = 0;
 		containerPosition.offsetTop = 0;
 		currentWord.offsetTop = 0;
+		timer = {
+			start: false,
+			minutes: 1,
+			interval: null,
+			seconds: 0,
+			init: true
+		}
 	}
 
 	const getClassWordBasedOnInput = (i: number, word: any) => {
@@ -104,6 +151,10 @@
 		return ''
 	}
 
+	const adjustDispayNumber = (number: number) => {
+		return number.toString().length === 1 ? '0' + number : number;
+	}
+
 </script>
 
 <main>
@@ -114,17 +165,57 @@
 			{/each}
 		</div>
 	</div>
-	<input type=text bind:value="{inputUser}" on:keyup={userPressKey}>
-	<button on:click={restart}>Restart</button>
+	<div class="flex">
+		<input type='text' bind:value="{inputUser}" on:keyup={userPressKey} disabled={!timer.init && !timer.start}>
+		<div class="timer">
+			<span class="{timer.start ? 'timer-animation' : ''}">
+				{adjustDispayNumber(timer.minutes)}:{adjustDispayNumber(timer.seconds)}
+			</span>
+		</div>
+		<button class="restart" on:click={restart}>Restart</button>
+	</div>
 </main>
 
 <style lang="scss">
+	.flex {
+		display: flex;
+		justify-content: center;
+	}
+
+	.timer {
+		border: 1px solid #079e73;
+		margin: 0 .5rem;
+		height: 35px;
+		line-height: 30px;
+		padding: 0 1rem;
+		font-weight: bold;
+		.timer-animation {
+			animation: blinking 2s infinite;
+			@keyframes blinking {
+				0% {opacity: 1;}
+				50% {opacity: 0;}
+				100% {opacity: 1;}
+			}
+		}
+	}
+	button {
+		&.restart {
+			background-color: #079e73;
+			border: 1px solid #18765b;
+			cursor: pointer;
+			color: white;
+			transition: background-color 250ms;
+			&:hover {
+				background-color: #1ea780;
+			}
+		}
+	}
 	main {
 		text-align: center;
 		padding: 1em;
 		margin: 0 auto;
 		.container {
-			height: 100px;
+			height: 110px;
 			overflow: hidden;
 			box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
 			max-width: 815px;
