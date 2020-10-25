@@ -19,3 +19,8 @@ export interface ContainerPosition {
   offsetTop: number;
   currentPositionTop: number;
 }
+
+export interface KeyStroke {
+  total: number;
+  incorrect: number;
+}

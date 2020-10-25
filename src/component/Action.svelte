@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { CurrentWord, ContainerPosition } from '../model/index';
+  import type { CurrentWord, ContainerPosition, KeyStroke } from '../model/index';
   import { createEventDispatcher } from 'svelte';
 
   const dispatch = createEventDispatcher();
@@ -7,6 +7,7 @@
   export let currentWord: CurrentWord;
   export let wordLists: any[];
   export let containerPosition: ContainerPosition;
+	export let keystrokes: KeyStroke;
 
   let inputUser: string;
   let game = {
@@ -27,6 +28,7 @@
   const checkCurrentActiveWord = (typedWord:string, word:string) => {
 		for (let i = 0; i < typedWord.trim().length; i++) {
 			if(word[i] !== typedWord[i]) {
+				keystrokes.incorrect++;
 				wordLists[currentWord.index].incorrect = true;
 				break;
 			}
@@ -43,14 +45,18 @@
 					timer.seconds = 59;
 				}
 			} else {
-				game.start = false;
-				game.finish = true;
-				wordLists = [];
-				inputUser = '';
+				finishGame();
 			}
 		}, 1000)
 	}
 
+	const finishGame = () => {
+		clearInterval(timer.interval);
+		dispatch('showResult', true);
+		game.start = false;
+		game.finish = true;
+		inputUser = '';
+	}
   const startGame = () => {
 		if (!game.start){ 
 			game.start = true;
@@ -75,6 +81,7 @@
 		if (keyCode === 32) {
       procedNextWord(typedWord, word)
 		} else {
+			keystrokes.total++;
 			checkCurrentActiveWord(typedWord, word)
 		}
   }
@@ -108,7 +115,8 @@
   }
   
   const restart = async () => {
-    clearInterval(timer.interval);
+		clearInterval(timer.interval);
+		dispatch('showResult', false);
 		dispatch('getWordLists');
 		initFirstWord()
 		currentWord.index = 0;
