@@ -1,6 +1,7 @@
 <script type="module" lang="ts">
 	import DisplayWords from "./component/DisplayWords.svelte";
 	import Action from "./component/Action.svelte";
+	import Result from "./component/Result.svelte";
 	import API from "../services/api";
 	import { onMount } from 'svelte';
 
@@ -44,6 +45,7 @@
 <main>
 	<DisplayWords bind:currentWord={currentWord} bind:wordLists={wordLists} bind:containerPosition={containerPosition} />
 	<Action bind:currentWord={currentWord} bind:wordLists={wordLists} on:getWordLists={getWordLists} bind:containerPosition={containerPosition}/>
+	<Result />
 </main>
 
 <style lang="scss">
