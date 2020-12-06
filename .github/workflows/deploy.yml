@@ -18,6 +18,6 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@3.7.1
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BRANCH: main # The branch the action should deploy to.
+          BRANCH: deploy # The branch the action should deploy to.
           FOLDER: public # The folder the action should deploy.
           CLEAN: false # Automatically remove deleted files from the deploy branch
