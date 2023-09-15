@@ -6,8 +6,8 @@
 	import DisplayWords from "./component/DisplayWords.svelte";
 	import Action from "./component/Action.svelte";
 	import Result from "./component/Result.svelte";
-	import API from "../services/api";
 	import { onMount } from 'svelte';
+	import { quotes } from "./quotes";
 
 	let wordLists: any[] = [];
 
@@ -32,16 +32,16 @@
 	})
 	const getWordLists = async () => {
 		wordLists = [];
-		const response = await API.get()
-		const getSartingPoint = Math.floor(Math.random() * 1592);
-		const sentences = response.data.slice(getSartingPoint, getSartingPoint + 50)
+		const getSartingPoint = Math.floor(Math.random() * 104);
+		const sentences = quotes.slice(getSartingPoint, getSartingPoint + 50)
 		wordLists = adjustArrayText(sentences);
 	};
 
 	const adjustArrayText = (sentences: any) => {
+		console.log({ sentences })
 		const displayWords = [];
 		for (let i = 0; i < sentences.length; i++) {
-			const words = sentences[i].text.split(' ');
+			const words = sentences[i].split(' ');
 			for (let j = 0; j < words.length; j++) {
 				if (displayWords.length === 250) {
 					return displayWords;
@@ -51,6 +51,7 @@
 				})
 			}
 		}
+		return displayWords;
 	}
 
 </script>
